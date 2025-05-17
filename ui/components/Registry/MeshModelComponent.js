@@ -13,8 +13,6 @@ import MesheryTreeView from './MesheryTreeView';
 import MeshModelDetails from './MeshModelDetails';
 import { toLower } from 'lodash';
 import { useRouter } from 'next/router';
-import { Provider } from 'react-redux';
-import { store } from '../../store';
 import {
   useLazyGetMeshModelsQuery,
   useLazyGetComponentsQuery,
@@ -419,6 +417,7 @@ const TabBar = ({ openImportModal, openCreateModal }) => {
           style={{ display: 'flex' }}
           disabled={false} //TODO: Need to make key for this component
           startIcon={<AddIcon style={iconSmall} />}
+          data-testid="TabBar-Button-CreateModel"
         >
           Create
         </Button>
@@ -430,6 +429,7 @@ const TabBar = ({ openImportModal, openCreateModal }) => {
           style={{ display: 'flex' }}
           disabled={false} //TODO: Need to make key for this component
           startIcon={<UploadIcon />}
+          data-testid="TabBar-Button-ImportModel"
         >
           Import
         </Button>
@@ -462,9 +462,7 @@ const TabCard = ({ label, count, active, onClick }) => {
 const MeshModelComponent = (props) => {
   return (
     <NoSsr>
-      <Provider store={store}>
-        <MeshModelComponent_ {...props} />
-      </Provider>
+      <MeshModelComponent_ {...props} />
     </NoSsr>
   );
 };

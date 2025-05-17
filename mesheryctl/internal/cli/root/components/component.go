@@ -35,7 +35,6 @@ var (
 	availableSubcommands = []*cobra.Command{listComponentCmd, viewComponentCmd, searchComponentsCmd}
 
 	pageNumberFlag int
-	outFormatFlag  string
 	saveFlag       bool
 
 	componentApiPath = "api/meshmodels/components"
@@ -73,14 +72,7 @@ mesheryctl component view [component-name]
 	RunE: func(cmd *cobra.Command, args []string) error {
 		count, _ := cmd.Flags().GetBool("count")
 		if count {
-			mctlCfg, err := config.GetMesheryCtl(viper.GetViper())
-			if err != nil {
-				log.Fatalln(err, "error processing config")
-			}
-
-			baseUrl := mctlCfg.GetBaseMesheryURL()
-			url := fmt.Sprintf("%s/%s", baseUrl, componentApiPath)
-			return listComponents(cmd, url)
+			return listComponents(cmd, componentApiPath)
 		}
 
 		if ok := utils.IsValidSubcommand(availableSubcommands, args[0]); !ok {

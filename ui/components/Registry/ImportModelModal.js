@@ -13,10 +13,9 @@ import {
   useTheme,
 } from '@layer5/sistent';
 import { RJSFModalWrapper } from '../Modal';
-import CsvStepper, { StyledDocsRedirectLink } from './Stepper/CSVStepper';
+import CsvStepper from './Stepper/CSVStepper';
 import { MESHERY_DOCS_URL } from '@/constants/endpoints';
 import { getUnit8ArrayDecodedFile } from '@/utils/utils';
-import { updateProgress } from 'lib/store';
 import { useImportMeshModelMutation } from '@/rtk-query/meshModel';
 import React, { useState, useEffect, useContext } from 'react';
 import { capitalize } from 'lodash';
@@ -27,6 +26,8 @@ import {
   ModelImportedSection,
   ModelImportMessages,
 } from '../NotificationCenter/formatters/model_registration';
+import { StyledDocsRedirectLink } from './Stepper/style';
+import { updateProgress } from '@/store/slices/mesheryUi';
 
 const FinishDeploymentStep = ({ deploymentType, handleClose }) => {
   const { operationsCenterActorRef } = useContext(NotificationCenterContext);
