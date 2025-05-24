@@ -23,13 +23,15 @@ import CAN from '@/utils/can';
 import { keys } from '@/utils/permission_constants';
 import { MESHERY_CLOUD_PROD } from '@/constants/endpoints';
 import { useGetMeshModelsQuery } from '@/rtk-query/meshModel';
-import Modal from '@/components/Modal';
+import Modal from '@/components/General/Modals/Modal';
 import { useNotification } from '@/utils/hooks/useNotification';
 import ExportModal from '@/components/ExportModal';
-import { EVENT_TYPES } from '@/utils/Enum';
+import { EVENT_TYPES } from 'lib/event-types';
 import downloadContent from '@/utils/fileDownloader';
 import { iconMedium } from 'css/icons.styles';
+import _ from 'lodash';
 import {
+  JsonParse,
   openDesignInKanvas,
   openViewInKanvas,
   useIsKanvasDesignerEnabled,
@@ -37,24 +39,13 @@ import {
 } from '@/utils/utils';
 import Router from 'next/router';
 import { useContext } from 'react';
-import { WorkspaceSwitcherContext } from '@/components/SpacesSwitcher/WorkspaceSwitcher';
+import { getDesign, useUpdatePatternFileMutation } from '@/rtk-query/design';
+import { getView, useUpdateViewVisibilityMutation } from '@/rtk-query/view';
+import { useGetLoggedInUserQuery } from '@/rtk-query/user';
+import { WorkspaceModalContext } from '@/utils/context/WorkspaceModalContextProvider';
 
 const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
-  const [designSearch, setDesignSearch] = useState('');
   const { notify } = useNotification();
-
-  const { data: designsOfWorkspace, refetch: refetchPatternData } = useGetDesignsOfWorkspaceQuery(
-    {
-      workspaceId: workspaceId,
-      page: 0,
-      pageSize: 10,
-      expandUser: true,
-      search: designSearch,
-    },
-    {
-      skip: !workspaceId,
-    },
-  );
 
   const handleCopyUrl = (type, designName, designId) => {
     notify({
@@ -72,10 +63,8 @@ const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
     pagesize: 'all',
   });
 
-  const { handlePublish, handlePublishModal: publishModalHandler } = usePublishPattern(
-    meshModelModelsData,
-    refetchPatternData,
-  );
+  const { handlePublish, handlePublishModal: publishModalHandler } =
+    usePublishPattern(meshModelModelsData);
 
   const handleDesignDownloadModal = (pattern) => {
     setDownloadModal((prevState) => ({
@@ -115,13 +104,17 @@ const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
   const isDesignsVisible = CAN(keys.VIEW_DESIGNS.action, keys.VIEW_DESIGNS.subject);
   const isKanvasDesignerAvailable = useIsKanvasDesignerEnabled();
   const isKanvasOperatorAvailable = useIsOperatorEnabled();
-  const workspaceSwitcherContext = useContext(WorkspaceSwitcherContext);
+  const workspaceSwitcherContext = useContext(WorkspaceModalContext);
 
   function CustomTabPanel(props) {
     const { children, value, index, ...other } = props;
 
     return (
-      <div hidden={value !== index} {...other}>
+      <div
+        hidden={value !== index}
+        {...other}
+        style={{ backgroundColor: theme.palette.background.tabs }}
+      >
         {value === index && <>{children}</>}
       </div>
     );
@@ -169,11 +162,58 @@ const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
 
     openViewInKanvas(viewId, viewName, Router);
   };
+  const [updatePattern] = useUpdatePatternFileMutation();
+  const [updateView] = useUpdateViewVisibilityMutation();
+
+  const handleDesignVisibilityChange = async (designId, viewType) => {
+    const { data: design } = await getDesign({
+      design_id: designId,
+    });
+    const msg = `${_.startCase(design?.name)} is now ${viewType}`;
+    const designFile = JsonParse(design?.pattern_file);
+    updatePattern({
+      updateBody: {
+        id: design?.id,
+        design_file: designFile,
+        visibility: viewType,
+        name: design?.name,
+      },
+    })
+      .unwrap()
+      .then(() => {
+        notify({
+          message: `${msg}`,
+          event_type: EVENT_TYPES.SUCCESS,
+        });
+      });
+  };
+
+  const handleViewVisibilityChange = async (viewId, viewType) => {
+    const { data: view } = await getView({
+      viewId: viewId,
+    });
+    updateView({
+      id: viewId,
+      body: {
+        ...view,
+        visibility: viewType,
+      },
+    })
+      .unwrap()
+      .then(() => {
+        notify({
+          message: `View is now ${viewType}`,
+          event_type: EVENT_TYPES.SUCCESS,
+        });
+      });
+  };
+  const { data: currentUser } = useGetLoggedInUserQuery();
+  const currentUserId = currentUser?.id;
 
   return (
     <ErrorBoundary>
       {shouldRenderTabs && (
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', marginBottom: '2rem' }}>
           <Tabs value={value} onChange={handleChange}>
             {isDesignsVisible && (
               <Tab
@@ -200,9 +240,7 @@ const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
           <DesignTable
             handleOpenInDesigner={isKanvasDesignerAvailable && handleOpenDesignInDesigner}
             showPlaygroundActions={false}
-            showOpenInPlayground={false}
             GenericRJSFModal={Modal}
-            designsOfWorkspace={designsOfWorkspace}
             handleBulkWorkspaceDesignDeleteModal={handleBulkWorkspaceDesignDeleteModal}
             handleWorkspaceDesignDeleteModal={handleWorkspaceDesignDeleteModal}
             isAssignAllowed={CAN(
@@ -229,7 +267,8 @@ const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
             handleShowDetails={handleOpenDesignInDesigner}
             handleDownload={handleDesignDownloadModal}
             handlePublish={handlePublish}
-            setDesignSearch={setDesignSearch}
+            handleVisibilityChange={handleDesignVisibilityChange}
+            currentUserId={currentUserId}
           />
         </CustomTabPanel>
       )}
@@ -251,6 +290,8 @@ const WorkSpaceContentDataTable = ({ workspaceId, workspaceName }) => {
             useUnassignViewFromWorkspaceMutation={useUnassignViewFromWorkspaceMutation}
             workspaceId={workspaceId}
             workspaceName={workspaceName}
+            currentUserId={currentUserId}
+            handleVisibilityChange={handleViewVisibilityChange}
           />
         </CustomTabPanel>
       )}

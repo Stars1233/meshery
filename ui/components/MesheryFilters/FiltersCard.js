@@ -1,4 +1,3 @@
-//@ts-check
 import React, { useState } from 'react';
 import {
   Divider,
@@ -35,14 +34,12 @@ import TooltipButton from '../../utils/TooltipButton.js';
 import { VISIBILITY } from '../../utils/Enum';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { Provider } from 'react-redux';
-import { store } from '../../store';
 import { useGetUserByIdQuery } from '../../rtk-query/user';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
 import { keys } from '@/utils/permission_constants';
 import CAN from '@/utils/can';
 import { VisibilityChipMenu } from '@layer5/sistent';
-import { VIEW_VISIBILITY } from '../Modals/Information/InfoModal';
+import { VIEW_VISIBILITY } from '../General/Modals/Information/InfoModal';
 import { Public, Lock } from '@mui/icons-material';
 import { iconMedium } from 'css/icons.styles';
 
@@ -321,12 +318,7 @@ function FiltersCard_({
 }
 
 export const FiltersCard = (props) => {
-  return (
-    <Provider store={store}>
-      <FiltersCard_ {...props} />
-    </Provider>
-  );
+  return <FiltersCard_ {...props} />;
 };
 
-// @ts-ignore
 export default FiltersCard;

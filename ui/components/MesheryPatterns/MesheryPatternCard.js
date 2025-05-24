@@ -31,8 +31,6 @@ import { Edit, Lock, Public } from '@mui/icons-material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { MESHERY_CLOUD_PROD } from '../../constants/endpoints';
 import { useGetUserByIdQuery } from '../../rtk-query/user';
-import { Provider } from 'react-redux';
-import { store } from '../../store';
 import CAN from '@/utils/can';
 import { keys } from '@/utils/permission_constants';
 import ActionButton from './ActionButton';
@@ -41,7 +39,7 @@ import CheckIcon from '@/assets/icons/CheckIcon';
 import { VISIBILITY } from '@/utils/Enum';
 import PatternIcon from '@/assets/icons/Pattern';
 import { iconLarge, iconMedium } from 'css/icons.styles';
-import { VIEW_VISIBILITY } from '../Modals/Information/InfoModal';
+import { VIEW_VISIBILITY } from '../General/Modals/Information/InfoModal';
 const INITIAL_GRID_SIZE = { xl: 4, md: 6, xs: 12 };
 
 function MesheryPatternCard_({
@@ -418,12 +416,7 @@ function MesheryPatternCard_({
 }
 
 export const MesheryPatternCard = (props) => {
-  return (
-    <Provider store={store}>
-      <MesheryPatternCard_ {...props} />
-    </Provider>
-  );
+  return <MesheryPatternCard_ {...props} />;
 };
 
-// @ts-ignore
 export default MesheryPatternCard;

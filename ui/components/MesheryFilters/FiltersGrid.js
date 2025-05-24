@@ -1,4 +1,3 @@
-//@ts-check
 import { Grid, Button, Pagination } from '@layer5/sistent';
 import React, { useState } from 'react';
 import FiltersCard from './FiltersCard';
@@ -10,7 +9,7 @@ import {
   GridNoTextStyles,
   GridPaginationStyles,
 } from '../MesheryPatterns/Grid.styles';
-import { RJSFModalWrapper } from '../Modal';
+import { RJSFModalWrapper } from '../General/Modals/Modal';
 import CAN from '@/utils/can';
 import { keys } from '@/utils/permission_constants';
 import { Modal as SistentModal } from '@layer5/sistent';
